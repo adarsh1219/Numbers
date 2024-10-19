@@ -1,0 +1,39 @@
+name: Assign Issue to Author, and Greet
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  issues: write
+
+jobs:
+  assign-issue-and-greet:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Assign issue to author
+        env:
+          GITHUB_TOKEN: ${{ secrets.MY_PAT }}
+        run: |
+          curl -X POST -H "Authorization: token $GITHUB_TOKEN" \
+          -d '{"assignees":["'${{ github.event.issue.user.login }}'"]}' \
+          https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.issue.number }}/assignees
+
+      - name: Greet the issue author
+        env:
+          GITHUB_TOKEN: ${{ secrets.MY_PAT }}
+        run: |
+          curl -X POST -H "Authorization: token $GITHUB_TOKEN" \
+          -d '{"body": "Hi @'${{ github.event.issue.user.login }}', thanks for opening this issue!"}' \
+          https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.issue.number }}/comments
+
+      - name: Post additional greeting
+        env:
+          GITHUB_TOKEN: ${{ secrets.MY_PAT }}
+        run: |
+          curl -X POST -H "Authorization: token $GITHUB_TOKEN" \
+          -d '{"body": "Happy Contribution! 🎉"}' \
+          https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.issue.number }}/comments
