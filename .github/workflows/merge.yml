@@ -1,32 +1,35 @@
-name: Merge and Greet All Open Pull Requests
+name: Merge workflow
 
 on:
   workflow_dispatch:  # Allows the workflow to be triggered manually
 
 jobs:
-  merge_and_greet:
+  auto_approve_merge_greet:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the code
         uses: actions/checkout@v3
 
-      - name: List, merge, and thank contributors for all open pull requests
+      - name: List
         run: |
           # Fetch all open PRs, with a limit of 100
           prs=$(gh pr list --state open --json number --jq '.[].number' --limit 100)
           
           # Check if no PRs are found
           if [ -z "$prs" ]; then
-            echo "No more PRs to merge."
+            echo "No PRs to merge."
             exit 0
           fi
 
-          # Loop through each PR and merge
+          # Loop through each PR
           for pr in $prs; do
-            echo "Merging PR #$pr"
-            gh pr merge $pr --admin --squash  # Force merge with admin privileges
+            echo "Approving PR #$pr"
+            gh pr review $pr --approve
 
-            # Add a thank you comment
+            echo "Merging PR #$pr"
+            # Merge with admin privileges and squash commits
+            gh pr merge $pr --admin --squash
+
             echo "Thanking contributor for PR #$pr"
             gh pr comment $pr --body "Thank you for contributing! 🎉 Your PR has been merged."
           done
