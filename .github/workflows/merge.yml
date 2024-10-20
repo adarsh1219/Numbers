@@ -1,0 +1,28 @@
+name: Merge and Greet Specific Pull Requests
+
+on:
+  workflow_dispatch:  # Allows the workflow to be triggered manually
+
+jobs:
+  merge_and_greet:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the code
+        uses: actions/checkout@v3
+
+      - name: Merge and thank contributors for specific PRs
+        run: |
+          # Specify the PR numbers to merge
+          prs=(574 575)
+
+          # Loop through each specified PR and merge
+          for pr in "${prs[@]}"; do
+            echo "Merging PR #$pr"
+            gh pr merge $pr --auto --squash --admin  # Merge the PR
+
+            # Add a thank you comment
+            echo "Thanking "
+            gh pr comment $pr --body "Thank you for contributing! 🎉 Your PR has been merged."
+          done
+        env:
+          GITHUB_TOKEN: ${{ secrets.MY_PAT }}
