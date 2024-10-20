@@ -13,12 +13,14 @@ jobs:
       - name: Merge and thank contributors for specific PRs
         run: |
           # Specify the PR numbers to merge
-          prs=(574 575)
+          prs=(575 576)
 
-          # Loop through each specified PR and merge
+          # Loop through each specified PR and merge using admin privileges
           for pr in "${prs[@]}"; do
             echo "Merging PR #$pr"
-            gh pr merge $pr --auto --squash  # Automatically merge if all requirements are met
+            
+            # Force merge with admin privileges for both PRs
+            gh pr merge $pr --admin --squash
 
             # Add a thank you comment
             echo "Thanking contributor for PR #$pr"
