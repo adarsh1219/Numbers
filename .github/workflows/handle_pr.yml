@@ -1,4 +1,4 @@
-name: PR Label
+name: PR Label and Comment
 
 on:
   pull_request_target:
@@ -8,6 +8,9 @@ jobs:
   label_and_comment:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout the code
+        uses: actions/checkout@v3
+      
       - name: Add Hacktoberfest label
         run: |
           gh pr edit ${{ github.event.pull_request.number }} --add-label "hacktoberfest-accepted"
