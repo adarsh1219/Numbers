@@ -1,7 +1,7 @@
-name: Merge and Greet Specific Pull Requests
+name: Merge and Greet All Open PRs
 
 on:
-  workflow_dispatch:
+  workflow_dispatch:  # Allows the workflow to be triggered manually
 
 jobs:
   merge_and_greet:
@@ -10,17 +10,15 @@ jobs:
       - name: Checkout the code
         uses: actions/checkout@v3
 
-      - name: Merge and thank contributors for specific PRs
+      - name: List, merge, and thank
         run: |
-          # Specify the PR numbers to merge
-          prs=(575 576)
+          # List all open pull requests and get their numbers
+          prs=$(gh pr list --state open --json number --jq '.[].number')
 
-          # Loop through each specified PR and merge using admin privileges
-          for pr in "${prs[@]}"; do
+          # Loop through each open PR and merge using admin privileges
+          for pr in $prs; do
             echo "Merging PR #$pr"
-            
-            # Force merge with admin privileges for both PRs
-            gh pr merge $pr --admin --squash
+            gh pr merge $pr --admin --squash  # Force merge with admin privileges
 
             # Add a thank you comment
             echo "Thanking contributor for PR #$pr"
