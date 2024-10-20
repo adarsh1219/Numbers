@@ -1,7 +1,7 @@
 name: Merge and Greet Specific Pull Requests
 
 on:
-  workflow_dispatch:  # Allows the workflow to be triggered manually
+  workflow_dispatch:
 
 jobs:
   merge_and_greet:
@@ -18,10 +18,10 @@ jobs:
           # Loop through each specified PR and merge
           for pr in "${prs[@]}"; do
             echo "Merging PR #$pr"
-            gh pr merge $pr --auto --squash --admin  # Merge the PR
+            gh pr merge $pr --auto --squash  # Automatically merge if all requirements are met
 
             # Add a thank you comment
-            echo "Thanking "
+            echo "Thanking contributor for PR #$pr"
             gh pr comment $pr --body "Thank you for contributing! 🎉 Your PR has been merged."
           done
         env:
