@@ -12,36 +12,23 @@ jobs:
 
       - name: List, merge, and thank contributors for all open pull requests
         run: |
-          # Initialize variables
-          total_fetched=0
-          batch_size=100  # Maximum per_page supported by gh pr list
+          # Fetch all open PRs, with a limit of 100
+          prs=$(gh pr list --state open --json number --jq '.[].number' --limit 100)
           
-          while true; do
-            # Fetch the next batch of PRs, starting from where we left off
-            prs=$(gh pr list --state open --json number --jq '.[].number' --limit $batch_size --skip $total_fetched)
-            
-            # Break if no more PRs are found
-            if [ -z "$prs" ]; then
-              echo "No more PRs to merge."
-              break
-            fi
-            
-            # Loop through each PR and merge
-            for pr in $prs; do
-              echo "Merging PR #$pr"
-              gh pr merge $pr --admin --squash  # Force merge with admin privileges
+          # Check if no PRs are found
+          if [ -z "$prs" ]; then
+            echo "No more PRs to merge."
+            exit 0
+          fi
 
-              # Add a thank you comment
-              echo "Thanking contributor for PR #$pr"
-              gh pr comment $pr --body "Thank you for contributing! 🎉 Your PR has been merged."
-            done
+          # Loop through each PR and merge
+          for pr in $prs; do
+            echo "Merging PR #$pr"
+            gh pr merge $pr --admin --squash  # Force merge with admin privileges
 
-            # Update the total number of PRs fetched
-            total_fetched=$((total_fetched + batch_size))
-
-            # Sleep for 10 seconds to avoid hitting the rate limit
-            echo "Sleeping for 10 seconds to avoid hitting the rate limit"
-            sleep 10
+            # Add a thank you comment
+            echo "Thanking contributor for PR #$pr"
+            gh pr comment $pr --body "Thank you for contributing! 🎉 Your PR has been merged."
           done
         env:
           GITHUB_TOKEN: ${{ secrets.MY_PAT }}
