@@ -1,4 +1,4 @@
-name: Merge and Greet All Open PRs
+name: Merge and Greet All Open Pull Requests
 
 on:
   workflow_dispatch:  # Allows the workflow to be triggered manually
@@ -10,19 +10,38 @@ jobs:
       - name: Checkout the code
         uses: actions/checkout@v3
 
-      - name: List, merge, and thank
+      - name: List, merge, and thank contributors for all open pull requests
         run: |
-          # List all open pull requests and get their numbers
-          prs=$(gh pr list --state open --json number --jq '.[].number')
+          # Fetch all open PRs using pagination
+          page=1
+          per_page=100  # Increase per_page to 100 to fetch more PRs at once
+          
+          while true; do
+            # Get PR numbers for the current page
+            prs=$(gh pr list --state open --json number --jq '.[].number' --page $page --per-page $per_page)
+            
+            # Break if no more PRs are found
+            if [ -z "$prs" ]; then
+              echo "No more PRs to merge."
+              break
+            fi
+            
+            # Loop through each PR on the current page and merge
+            for pr in $prs; do
+              echo "Merging PR #$pr"
+              gh pr merge $pr --admin --squash  # Force merge with admin privileges
 
-          # Loop through each open PR and merge using admin privileges
-          for pr in $prs; do
-            echo "Merging PR #$pr"
-            gh pr merge $pr --admin --squash  # Force merge with admin privileges
+              # Add a thank you comment
+              echo "Thanking contributor for PR #$pr"
+              gh pr comment $pr --body "Thank you for contributing! 🎉 Your PR has been merged."
+            done
 
-            # Add a thank you comment
-            echo "Thanking contributor for PR #$pr"
-            gh pr comment $pr --body "Thank you for contributing! 🎉 Your PR has been merged."
+            # Sleep for 10 seconds to avoid hitting the rate limit
+            echo "Sleeping for 10 seconds to avoid hitting the rate limit"
+            sleep 10
+
+            # Move to the next page
+            ((page++))
           done
         env:
-          GITHUB_TOKEN: ${{ secrets.MY_PAT }}
+          GITHUB_TOKEN: ${{ secrets.MY_PAT }
